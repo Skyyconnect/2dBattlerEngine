@@ -341,11 +341,11 @@ class Sprite{
     } else if(keyMap.q in keysDown){ // q
         this.shoot();
         
-    } else if(keyMap.w in keysDown){ // w 
+    } else if(keyMap.w in keysDown){ //  w 
         
     }  else if(keyMap.e in keysDown){ // e 
         
-    } else if(keyMap.r in keysDown){ // r 
+    } else if(keyMap.r in keysDown){ //  r 
            
     }  
   }
