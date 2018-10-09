@@ -59,8 +59,6 @@ ctx.translate(CENTER_WIDTH, CENTER_HEIGHT); // translate to 0,0 (origin)
     return handle;
   }
  
-
-
 function myUp(){
     canvas.onmousemove = null;
   }
@@ -70,8 +68,6 @@ function myDown(e){
     mouseY = (e.pageY - canvas.offsetTop);
     //game code 
   }
-
-
 
 function drawAll(items){ // draw all items and player to keys
     let i,j;
@@ -84,14 +80,14 @@ function drawAll(items){ // draw all items and player to keys
       }
 
     }
-  }
+}
 
 function random(num){
     return Math.floor(Math.random()*num);
   }
 
 
-  const physics = {  //physics engine
+const physics = {  //physics engine
     ballCollision:function collision(objA,objB){
         if (objA.x < objB.x + objB.radius &&
         objA.x + objA.radius > objB.x &&
@@ -211,7 +207,7 @@ function random(num){
 
 
 
-  //End of Utility Declarations
+//END OF UTILITY DECLERATIONS
 
 class Constant{   
     constructor(){
@@ -219,7 +215,7 @@ class Constant{
         this.density = 1.22;
         this.gravity = 9.8;       
     }
-}
+} //end constant
 
 class Vector { 
 	constructor(x, y, z, direction) { 
@@ -290,7 +286,7 @@ class Vector {
      
   }
     
-}
+}// end Vector
 
 class Sprite{
     constructor(x,y,mass,radius,kx, type){           
@@ -384,9 +380,6 @@ project(){
 
 }// end of Sprite
 
-
-
-
 class Asset{
     constructor(x,y, width, height, type, direction){
         this.x = x;
@@ -431,7 +424,7 @@ class Asset{
     
     
 
-}
+}// end Asset
 
 class Game{
     constructor(state){
@@ -470,7 +463,6 @@ class Game{
             case 1: //game state
                 this.render();
                 physics.all(this.players[0]);
-
                 break;
 
             case 2: //end state
@@ -487,19 +479,7 @@ class Game{
         
     }
 
-
-
-
-
-
-
-
-
-}
-
-
-
-
+}// end Game
 
 var constant = new Constant(),
 game = new Game(0);
@@ -508,8 +488,5 @@ function update(){
     ctx.clearRect(-WIDTH,-HEIGHT,WIDTH*2,HEIGHT*2);
     game.stateMachine();
 }
-
-
-
 
 requestInterval(update, frameRate);
