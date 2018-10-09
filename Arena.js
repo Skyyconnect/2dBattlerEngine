@@ -103,7 +103,7 @@ function random(num){
         }
      },
 
-     collisionBetween: function (a,b){
+     collisionBetweenRect: function collideRect(a,b){
          return (a.x < b.x + b.width &&
             a.x + a.width > b.x &&
             a.y < b.y + b.height &&
