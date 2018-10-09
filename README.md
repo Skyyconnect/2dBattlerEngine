@@ -1,2 +1,2 @@
-# smallPhysicsEngine
-small physics engine in HTML5
+# 2D Battler Engine
+An engine for building 2d platform battlers. (eg. smash bros.)
