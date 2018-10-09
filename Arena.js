@@ -105,21 +105,12 @@ function random(num){
             obj.y = CENTER_HEIGHT - obj.radius;
             obj.velocity.y *= obj.kx;  
             return true;
-            
-          
-        }
-        else if (obj.x > CENTER_WIDTH - obj.radius) {
-            
+        }else if (obj.x > CENTER_WIDTH - obj.radius){
             obj.x = CENTER_WIDTH - obj.radius;
             return true;
-            
-          
-        }
-        else if (obj.x < -CENTER_WIDTH) {
+        }else if (obj.x < -CENTER_WIDTH) {
             obj.x = -CENTER_WIDTH+obj.radius;
             return true;
-            
-          
         }else{
             return false;
         }
@@ -165,20 +156,20 @@ function random(num){
     all:function allPhysics(obj) {
             let i;
             for(i = 0; i < game.platforms.length; i++){
-                if ((physics.collisionBetween(obj, game.platforms[i])) ){
+                if ((this.collisionBetween(obj, game.platforms[i])) ){
                     obj.y = game.platforms[i].y;
                     obj.vector.direction = 0;
                     obj.onGround = true;
                     return                    
                 }else{
-                    if(!physics.boundry(obj)){
+                    if(!this.boundry(obj)){
                     obj.onGround = false;
                     }   
                 }
             }if (!obj.onGround) {
-                let Fy = physics.drag(obj)[1];  
+                let Fy = this.drag(obj)[1];  
                 Fy = (isNaN(Fy) ? 0 : Fy); 
-                obj.y += physics.accelerationY(obj)*frameRate*100-Fy;  
+                obj.y += this.accelerationY(obj)*frameRate*100-Fy;  
             }
     },
     
