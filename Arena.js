@@ -64,11 +64,12 @@ function myDown(e){
 
 
 function drawAll(items){ // draw all items and player to keys
-    let i;
+    let i,j;
     for( i = 0; i < items.length; i++){
       items[i].draw();
       if(items[i].type === "player"){
           items[i].keys();
+          items[i].project();
           
       }
 
@@ -103,7 +104,10 @@ function random(num){
      boundry:function walls(obj){
         if (obj.y > CENTER_HEIGHT - obj.radius) { 
             obj.y = CENTER_HEIGHT - obj.radius;
-            obj.velocity.y *= obj.kx;  
+            obj.velocity.y *= obj.kx; 
+            obj.x = 0;
+            obj.y = -100;
+
             return true;
         }else if (obj.x > CENTER_WIDTH - obj.radius){
             obj.x = CENTER_WIDTH - obj.radius;
@@ -157,10 +161,12 @@ function random(num){
             let i;
             for(i = 0; i < game.platforms.length; i++){
                 if ((this.collisionBetween(obj, game.platforms[i])) ){
+                    //obj.velocity.y *= obj.kx; 
                     obj.y = game.platforms[i].y;
-                    obj.vector.direction = 0;
+                    //obj.vector.direction = 0;
                     obj.onGround = true;
-                    return                    
+                    return
+                                        
                 }else{
                     if(!this.boundry(obj)){
                     obj.onGround = false;
@@ -251,23 +257,26 @@ class Vector {
 	}
 
 	isOrthogonal(vector, theta) {
-		if (this.dotProduct(vector, theta) == 0) {  
-			return true; 
-		} else {
-			return false;
-		}
+		return (this.dotProduct(vector, theta) == 0);
 	}
   
   flip(){
-    if (this.direction == 1){
-      this.direction = 3; 
-    } else if (this.direction == 3){
-      this.direction = 1;
-    }else if (this.direction == 2){
-      this.direction = 4;
-    }else if (this.direction == 4){
-      this.direction = 2;
+
+    switch(this.direction){
+        case 1:
+            this.direction = 3;
+            break;
+        case 2:
+            this.direction = 4;
+            break;
+        case 3:
+            this.direction = 1;
+            break;
+        case 4:
+            this.direction = 2;
+            break;
     }
+    
      
   }
     
@@ -289,6 +298,7 @@ class Sprite{
         this.color = 2; 
         this.jumpsLeft = 1;
         this.onGround = false; 
+        this.projectiles = [];
     }
   
   draw(){       
@@ -310,15 +320,46 @@ class Sprite{
   }
 
   keys(){
-      if ((39 in keysDown) || (32 in keysDown && 39 in keysDown)){ //right arrow or right-space
-        this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
-        this.vector.direction = 1;
-      }else if((37 in keysDown) || (32 in keysDown && 37 in keysDown )){ //left arrow or left-space
-        this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
-        this.vector.direction = 3;
-      }else if(32 in keysDown){// space 
-           this.jump();    
-      } 
+    if ((39 in keysDown) || (32 in keysDown && 39 in keysDown)){ //right arrow or right-space
+    this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
+    this.vector.direction = 1;
+    }else if((37 in keysDown) || (32 in keysDown && 37 in keysDown )){ //left arrow or left-space
+    this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
+    this.vector.direction = 3;
+    }else if(32 in keysDown){ // space 
+        this.jump();    
+    } else if(81 in keysDown){ // q
+        this.shoot();
+        
+    } else if(87 in keysDown){ // w 
+        
+    }  else if( 69 in keysDown){ // e 
+        
+    } else if( 82 in keysDown){ // r 
+           
+    }  
+  }
+
+
+project(){
+    let i;
+    if(this.projectiles.length > 0){
+        for(i = 0; i < this.projectiles.length; i++){
+            this.projectiles[i].toss();
+            if (this.projectiles[i].x > CENTER_WIDTH || this.projectiles[i].x < -CENTER_WIDTH || this.projectiles[i].y > CENTER_HEIGHT || this.projectiles[i].y < -CENTER_HEIGHT){
+                this.projectiles.pop();
+            }
+        }
+    }
+}
+ 
+
+  shoot(){
+      if(this.projectiles.length < this.jumpsLeft){
+          this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
+      }
+
+      
   }
 
 
@@ -338,8 +379,8 @@ class Sprite{
 
 
 
-class Assets{
-    constructor(x,y, width, height, type){
+class Asset{
+    constructor(x,y, width, height, type, direction){
         this.x = x;
         this.y = y;
         this.height = height;
@@ -349,12 +390,39 @@ class Assets{
         this.image = document.getElementById(this.id);
         this.vector = new Vector(1.0,1.0,0,4);
         this.radius = height;
+        this.vector.direction = direction;
     }
 
     draw(){
         ctx.fillStyle = 'red';
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
+
+
+    toss(){
+            this.draw();
+            switch(this.vector.direction){
+                case 1:
+                  this.x += this.vector.magnitude
+                  break;
+                case 2:
+                  this.y += this.vector.magnitude;
+                  break;
+                case 3:
+                  this.x -= this.vector.magnitude;
+                  break;
+              case 4:
+                  this.y -= this.vector.magnitude;
+              break;
+                  
+            }
+    
+        
+        }
+      
+    
+    
+
 }
 
 class Game{
@@ -370,9 +438,9 @@ class Game{
     }
 
     setup(){
-       this.platforms.push(new Assets(-200,0, 100, 50, "plaform"));
-       this.platforms.push(new Assets(100,0,100,50, "plaform"));
-       this.platforms.push(new Assets(-50,50,100,50, "plaform"));
+       this.platforms.push(new Asset(-200,0, 100, 50, "plaform", 4));
+       this.platforms.push(new Asset(100,0,100,50, "plaform", 4));
+       this.platforms.push(new Asset(-50,50,100,50, "plaform", 4));
        this.players.push(new Sprite(0,-100,1,10,-0.5, "player"));
     }
 
