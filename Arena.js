@@ -12,7 +12,7 @@
  canvas.onmousedown = myDown;
  canvas.onmouseup = myUp;
 
-ctx.translate(CENTER_WIDTH, CENTER_HEIGHT);
+ctx.translate(CENTER_WIDTH, CENTER_HEIGHT); //translate the coordinates to 0,0
 
  addEventListener("keydown", function (e) {
     keysDown[e.keyCode] = true;
@@ -22,155 +22,12 @@ ctx.translate(CENTER_WIDTH, CENTER_HEIGHT);
             //game.players[i].velocity.x = game.players[i].kx;
         }
     }
-  }, false);
+  }, false);                                    //add key handling
   addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
   }, false);
 
- 
- const physics = {
-    ballCollision:function collision(objA,objB){
-        if (objA.x < objB.x + objB.radius &&
-        objA.x + objA.radius > objB.x &&
-        objA.y < objB.y + objB.radius &&
-        objA.radius + objA.y > objB.y) {
-          return true;
-        }else{
-          return false; 
-        }
-     },
-
-     collisionBetween: function (a,b){
-         return (a.x < b.x + b.width &&
-            a.x + a.width > b.x &&
-            a.y < b.y + b.height &&
-            a.y + a.height > b.y);
-     },
-    
-    
-     boundry:function walls(obj){
-        if (obj.y > CENTER_HEIGHT - obj.radius) { 
-            obj.y = CENTER_HEIGHT - obj.radius;
-            obj.velocity.y *= obj.kx;  
-            return true;
-            
-          
-        }
-        else if (obj.x > CENTER_WIDTH - obj.radius) {
-            
-            obj.x = CENTER_WIDTH - obj.radius;
-            return true;
-            
-          
-        }
-        else if (obj.x < -CENTER_WIDTH) {
-            obj.x = -CENTER_WIDTH+obj.radius;
-            return true;
-            
-          
-        }else{
-            return false;
-        }
-     },
-    
-    
-    drag: function drag(obj){
-      let Fx = -0.5 * constant.drag * obj.area * constant.density * obj.velocity.x **3 /  Math.abs(obj.velocity.x),
-      Fy = -0.5 * constant.drag * obj.area * constant.density * obj.velocity.y **3 / Math.abs(obj.velocity.y);
-      Fx = (isNaN(Fx) ? 0 : Fx);
-      Fy = (isNaN(Fy) ? 0 : Fy);
-      return [Fx, Fy];
-    },
-       
-    
-    accelerationX: function accelerationX(obj){
-       let ax = this.drag(obj)[0] / obj.mass;
-        obj.velocity.x += ax*frameRate;
-       return obj.velocity.x;                                    
-    } , 
-
-    accelerationY: function accelerationY(obj){
-        let ay = constant.gravity + (this.drag(obj)[1] / obj.mass);
-        obj.velocity.y += ay*frameRate;
-        return obj.velocity.y;
-    },
-
-   
-     
-    
-    
-    massCollide:function massCollision(a,b){          
-      if(collision(a,b)) {                            
-        b.velocity.x = (((2*a.mass)/a.mass+b.mass)*b.velocity.x) + (((b.mass-a.mass)/(a.mass+b.mass))*b.velocity.x)*frameRate*100;    
-        a.velocity.x = (((2*b.mass)/a.mass+b.mass)*a.velocity.x) + (((a.mass-b.mass)/(a.mass+b.mass))*a.velocity.x)*frameRate*100; 
-           
-      } 
-    },
-    
-    
-    
-    
-    all:function allPhysics(obj) {
-            let i;
-            for(i = 0; i < game.platforms.length; i++){
-                if ((physics.collisionBetween(obj, game.platforms[i])) ){
-                    obj.y = game.platforms[i].y;
-                    obj.vector.direction = 0;
-                    obj.onGround = true;
-                    return                    
-                }else{
-                    if(!physics.boundry(obj)){
-                    obj.onGround = false;
-                    }   
-                }
-            }if (!obj.onGround) {
-                let Fy = physics.drag(obj)[1];  
-                Fy = (isNaN(Fy) ? 0 : Fy); 
-                obj.y += physics.accelerationY(obj)*frameRate*100-Fy;  
-            }
-    },
-    
-    balls: function makeBalls(items, num){
-      let i;
-      for(i = 0; i < num; i++){
-        items.push(new Entity(1*i*random(15),1*i*random(6)  , random(2), random(40),-0.7)); 
-      }
-      
-    },
-    
-    
-    drawAllSprites: function drawAll(items){
-      let i;
-      for( i = 0; i < items.length; i++){
-        items[i].draw();
-        items[i].move();  
-        
-      }
-    }
-}
-
-
-
-
-
-
-function drawAll(items){
-    let i;
-    for( i = 0; i < items.length; i++){
-      items[i].draw();
-      if(items[i].type === "player"){
-          items[i].keys();
-          
-      }
-
-    }
-  }
-
-function random(num){
-    return Math.floor(Math.random()*num);
-  }
-
- requestInterval = function (fn, delay) {
+  requestInterval = function (fn, delay) { // render engine
     var requestAnimFrame = (function () {
       return window.requestAnimationFrame || function (callback, element) {
         window.setTimeout(callback,  frameDelay);
@@ -193,13 +50,35 @@ function random(num){
 
  function myUp(){
     canvas.onmousemove = null;
-  }
-  
+  }            
+                          //mouse event handling
 function myDown(e){
     mouseX = (e.pageX - canvas.offsetLeft);
     mouseY = (e.pageY - canvas.offsetTop);
     //game code 
   }
+
+
+function drawAll(items){  // draw all to screen and give keys to players
+    let i;
+    for( i = 0; i < items.length; i++){
+      items[i].draw();
+      if(items[i].type === "player"){
+          items[i].keys();
+          
+      }
+
+    }
+  }
+
+function random(num){
+    return Math.floor(Math.random()*num);
+  }
+
+
+  //END OF UTILITY
+
+ 
 
 class Constant{   
     constructor(){
