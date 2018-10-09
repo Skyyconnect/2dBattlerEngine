@@ -11,6 +11,16 @@
  keysDown = {};
  canvas.onmousedown = myDown;
  canvas.onmouseup = myUp;
+ keyMap = {
+     space: 32,
+     right: 39,
+     left:  37,
+     q:     81,
+     w:     87,
+     e:     69,
+     r:     82,
+
+ }
 
 ctx.translate(CENTER_WIDTH, CENTER_HEIGHT); // translate to 0,0 (origin)
 
@@ -320,22 +330,22 @@ class Sprite{
   }
 
   keys(){
-    if ((39 in keysDown) || (32 in keysDown && 39 in keysDown)){ //right arrow or right-space
+    if ((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown)){ //right arrow or right-space
     this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 1;
-    }else if((37 in keysDown) || (32 in keysDown && 37 in keysDown )){ //left arrow or left-space
+    }else if((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown )){ //left arrow or left-space
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
-    }else if(32 in keysDown){ // space 
+    }else if(keyMap.space in keysDown){ // space 
         this.jump();    
-    } else if(81 in keysDown){ // q
+    } else if(keyMap.q in keysDown){ // q
         this.shoot();
         
-    } else if(87 in keysDown){ // w 
+    } else if(keyMap.w in keysDown){ // w 
         
-    }  else if( 69 in keysDown){ // e 
+    }  else if(keyMap.e in keysDown){ // e 
         
-    } else if( 82 in keysDown){ // r 
+    } else if(keyMap.r in keysDown){ // r 
            
     }  
   }
@@ -357,9 +367,7 @@ project(){
   shoot(){
       if(this.projectiles.length < this.jumpsLeft){
           this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
-      }
-
-      
+      }    
   }
 
 
