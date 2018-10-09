@@ -26,12 +26,6 @@ ctx.translate(CENTER_WIDTH, CENTER_HEIGHT); // translate to 0,0 (origin)
 
  addEventListener("keydown", function (e) {
     keysDown[e.keyCode] = true;
-    if(game.updateKeys){
-        let i ;
-        for(i =0; i < game.players.length; i++){
-            //game.players[i].velocity.x = game.players[i].kx;
-        }
-    }
   }, false);                                    // add key handler
   addEventListener("keyup", function (e) {
     delete keysDown[e.keyCode];
@@ -99,7 +93,7 @@ const physics = {  //physics engine
         }
      },
 
-     collisionBetweenRect: function collideRect(a,b){
+    collisionBetweenRect: function collideRect(a,b){
          return (a.x < b.x + b.width &&
             a.x + a.width > b.x &&
             a.y < b.y + b.height &&
@@ -166,7 +160,7 @@ const physics = {  //physics engine
     all:function allPhysics(obj) {
             let i;
             for(i = 0; i < game.platforms.length; i++){
-                if ((this.collisionBetween(obj, game.platforms[i])) ){
+                if ((this.collisionBetweenRect(obj, game.platforms[i])) ){
                     //obj.velocity.y *= obj.kx; 
                     obj.y = game.platforms[i].y;
                     //obj.vector.direction = 0;
