@@ -479,7 +479,7 @@ var constant = new Constant(),
 game = new Game(0);
 
 function update(){
-    ctx.clearRect(-WIDTH,-HEIGHT,WIDTH*2,HEIGHT*2);
+    ctx.clearRect(-CENTER_WIDTH, -CENTER_HEIGHT, WIDTH, HEIGHT);
     game.stateMachine();
 }
 
