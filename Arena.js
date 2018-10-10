@@ -703,7 +703,7 @@ game = new Game(0);
 
 
 function update(){
-    ctx.clearRect(-CENTER_WIDTH,-CENTER_HEIGHT, WIDTH,HEIGHT);
+    ctx.clearRect(-CENTER_WIDTH, -CENTER_HEIGHT, WIDTH, HEIGHT);
     game.stateMachine();
   
 }
