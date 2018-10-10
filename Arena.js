@@ -78,7 +78,15 @@ function drawAll(items){ // draw all items and player to keys
 
 function random(num){
     return Math.floor(Math.random()*num);
-  }
+}
+
+function distanceBetween(a,b){ 
+	return Math.sqrt(((a.x*a.x)-(b.x*b.x))+((a.y*a.y)-(b.y*b.y)))
+}
+
+function distanceBetweenPoints(x1,y1,x2,y2){ 
+	return Math.sqrt((x1*x1)-(x2*x2))+((y1*y1)-(y2*y2))
+}
 
 
 const physics = {  //physics engine
@@ -283,7 +291,7 @@ class Vector {
 }// end Vector
 
 class Sprite{
-    constructor(x,y,mass,radius,kx, type){           
+    constructor(x,y,mass,radius,kx, type, id){           
         this.x = x; 
         this.y = y;  
         this.mass = mass; 
@@ -299,25 +307,33 @@ class Sprite{
         this.jumpsLeft = 1;
         this.onGround = false; 
         this.projectiles = [];
+        this.image = document.getElementById(id);
+        this.animation = new Animation(this,id,4,this.width*this.height);
     }
   
-  draw(){       
-    ctx.save();     
-    ctx.beginPath();
-    if (this.color == 1)   
-    ctx.fillStyle = "red";  
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
-    ctx.fill();
-    ctx.translate(this.x, this.y);  
-    ctx.restore();         
+  draw(){ 
+    //this.animation.draw();
+    if(this.shouldAnimate){
+        this.animate();
+    }else{
+        ctx.save();     
+        ctx.beginPath();
+        if (this.color == 1)   
+        ctx.fillStyle = "red";  
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
+        ctx.fill();
+        ctx.translate(this.x, this.y);  
+        ctx.restore(); 
+    }
+
+
+
+
   }
+
+
+
   
-  autoMove(){
-    
-     this.x += physics.acceleration(this)[0]*frameRate*100;
-     this.y += physics.acceleration(this)[1]*frameRate*100;
-    
-  }
 
   keys(){
     if ((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown)){ //right arrow or right-space
@@ -328,7 +344,7 @@ class Sprite{
     this.vector.direction = 3;
     }else if(keyMap.space in keysDown){ // space 
         this.jump();    
-    } else if(keyMap.q in keysDown){ // q
+    } else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
         this.shoot();
         
     } else if(keyMap.w in keysDown){ //  w 
@@ -341,7 +357,7 @@ class Sprite{
   }
 
 
-project(){
+ project(){
     let i;
     if(this.projectiles.length > 0){
         for(i = 0; i < this.projectiles.length; i++){
@@ -351,7 +367,7 @@ project(){
             }
         }
     }
-}
+ }
  
 
   shoot(){
@@ -420,6 +436,203 @@ class Asset{
 
 }// end Asset
 
+
+class Animation{
+    constructor(obj, id, numFrames, scale){
+        this.image = document.getElementById(id);
+        this.obj = obj;
+        this.delay = 3;
+        this.delayCount = 0;
+        this.frameX = 1;
+        this.frameY = 1;
+        this.shouldAnimate = true;
+        this.numberOfFrames = numFrames;
+        this.scale = scale;
+
+
+    }
+
+
+    draw(){
+        if(this.shouldAnimate){ 
+           ctx.drawImage(this.image,this.frameX*this.obj.height, this.obj.height*this.frameY, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
+           this.incrementFrame(this.numberOfFrames,this.delay);
+        }else{
+            ctx.save();     
+            ctx.beginPath();
+            ctx.fillStyle = "red";  
+            ctx.arc(this.obj.x, this.obj.y, this.obj.radius, 0, Math.PI*2, true);
+            ctx.fill();
+            ctx.translate(this.obj.x, this.obj.y);  
+            ctx.restore(); 
+        }
+      }
+
+    incrementFrame(numFrames, delayAmount) {
+        if (this.delayCount < delayAmount) {
+          this.delayCount += 1;
+         
+        } else {
+          if (this.frameX < this.numberOfFrames ) {
+             this.frameX += 1;
+          } else {
+            this.frameX = 0;
+            this.delayCount = 0;
+           
+          }
+         
+        }
+        
+      }
+
+
+
+
+} //end of Animation
+
+
+
+
+class Camera{
+    constructor(x, y, width, height, offsetX, offsetY){
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.hight = height;
+		this.offsetX = offsetX;
+		this.offsetY = offsetY;
+		this.totalZoom =  1; 
+		this.scale = 1;
+		this.centerX = 0;
+		this.centerY = 0;
+}
+draw(){
+    ctx.save();     
+    ctx.beginPath();
+    ctx.fillStyle =  "rgba(255, 255, 255, 0.25)";  
+    ctx.arc(this.x, this.y, this.width, 0, Math.PI*2, true);
+    ctx.fill();
+    ctx.translate(this.x, this.y);  
+    ctx.restore(); 
+   
+}
+reset(){
+    this.offsetX = 0;
+    this.offsetY = 0;
+}
+
+view(players){
+    let centerOfZoom = new Point(0,0),//temporary
+    pointsOfInterest = new Array(),
+    zoomScale,
+    minDistance,
+    minDistanceSquared,
+    tempDist,
+    viewWidth,
+    viewHeight,
+    i;
+    pointsOfInterest.push(new Point(players[0].x, players[0].y));  
+    pointsOfInterest.push(new Point(players[1].x, players[1].y));
+    for(i = 0; i < pointsOfInterest.length; ++i){
+    centerOfZoom.x += pointsOfInterest[i].x;
+    centerOfZoom.y += pointsOfInterest[i].y;
+    
+    }
+    
+    centerOfZoom.x /= pointsOfInterest.length-1;
+    centerOfZoom.y /= pointsOfInterest.length-1;
+    minDistance = (this.width > this.height ? this.width/2 : this.height/2);
+    minDistanceSquared = minDistance * minDistance;
+    for(i = 0; i < pointsOfInterest.length; ++i){
+        tempDist = (pointsOfInterest[i].x - centerOfZoom.x) * (pointsOfInterest[i].x - centerOfZoom.x) + (pointsOfInterest[i].y - centerOfZoom.y) * (pointsOfInterest[i].y - centerOfZoom.y);
+        if(tempDist > minDistanceSquared){
+            minDistanceSquared = tempDist;
+        }
+    }
+    zoomScale= (Math.sqrt(minDistanceSquared)+minDistance/4)/minDistance;
+    this.scale += 0.05 * (Math.abs(this.scale-zoomScale)/(this.scale-zoomScale)); 
+
+
+    let zoomWidthView = this.width * this.scale,
+    zoomHeightView = this.height * this.scale,
+    viewX = centerOfZoom.x - zoomWidthView / 2,
+    viewY = centerOfZoom.y - zoomHeightView / 2;
+    
+
+    this.width -= Math.abs(viewX);
+    this.height -= Math.abs(viewY);
+
+            
+}
+
+
+
+
+
+
+zoomIn(amount){
+    let zoomWidth = WIDTH * this.scale,
+    zoomHeight = HEIGHT * this.scale;
+	this.width = zoomWidth;
+	this.height = zoomHeight;
+	if(this.scale < 0.01){
+		this.resetZoom();
+	}else{
+	    this.scale = amount;;
+    }
+    
+    ctx.save();
+    ctx.translate(-((zoomWidth-WIDTH)/2), -((zoomHeight-HEIGHT)/2));
+    ctx.scale(this.scale, this.scale);
+    ctx.restore();
+	return this.scale;
+}
+
+zoomOut(amount){
+    let zoomWidth = WIDTH * this.scale,
+    zoomHeight = HEIGHT * this.scale; 
+	if(this.scale > 1){
+		this.resetZoom(); 
+	}else{
+		this.scale = amount;
+	}
+   ctx.save();
+    ctx.translate(-((zoomWidth-WIDTH)/2), -((zoomHeight-HEIGHT)/2));
+    ctx.scale(this.scale, this.scale);
+    
+    ctx.restore();
+		return this.scale;
+}
+
+moveTo(obj){
+	this.x = ((obj.x-this.offsetX)/2);
+	this.y = ((obj.y-this.offsetX)/2);   
+	return [this.x,this.y]
+}
+
+moveBetween(a,b){
+	this.x = distanceBetween(a,b)/2+((a.x-b.x)/2);
+	this.y = distanceBetween(a,b)/2+((a.y-b.y)/2);
+}
+	
+ 
+resetZoom(){
+	this.scale = 1;
+}
+
+
+
+}// end of Camera
+
+
+class Point{
+	constructor(x,y){
+		this.x = x;
+		this.y = y;
+	}
+}//end of Point
+
+
 class Game{
     constructor(state){
         this.state = state;
@@ -428,6 +641,9 @@ class Game{
         this.items = [];
         this.sprites = [];
         this.updateKeys = true;
+        this.frameCount = 0;
+        this.camera = new Camera(0,0,100,100,0,0);
+       
         
 
     }
@@ -436,13 +652,15 @@ class Game{
        this.platforms.push(new Asset(-200,0, 100, 50, "plaform", 4));
        this.platforms.push(new Asset(100,0,100,50, "plaform", 4));
        this.platforms.push(new Asset(-50,50,100,50, "plaform", 4));
-       this.players.push(new Sprite(0,-100,1,10,-0.5, "player"));
+       this.players.push(new Sprite(0,-100,1,10,-0.5, "player", 'player'));
+       this.players.push(new Sprite(0,200,1,10,-0.5, "playerB", 'player'));
     }
 
 
     render(){
         drawAll(this.players);
         drawAll(this.platforms);
+        this.camera.draw();
     }
 
     stateMachine(){
@@ -457,6 +675,11 @@ class Game{
             case 1: //game state
                 this.render();
                 physics.all(this.players[0]);
+                physics.all(this.players[1]);
+                this.camera.zoomIn(.5);
+                this.camera.moveBetween(this.players[0], this.players[1])
+                this.camera.view(this.players);
+
                 break;
 
             case 2: //end state
@@ -478,9 +701,11 @@ class Game{
 var constant = new Constant(),
 game = new Game(0);
 
+
 function update(){
-    ctx.clearRect(-WIDTH,-HEIGHT,WIDTH*2,HEIGHT*2);
+    ctx.clearRect(-CENTER_WIDTH,-CENTER_HEIGHT, WIDTH,HEIGHT);
     game.stateMachine();
+  
 }
 
 requestInterval(update, frameRate);
