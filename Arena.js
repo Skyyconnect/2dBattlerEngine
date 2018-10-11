@@ -315,9 +315,8 @@ class Sprite{
     }
   
   draw(){ 
-    //this.animation.draw();
     if(this.shouldAnimate){
-        this.animate();
+        this.animation.draw();
     }else{
         ctx.save();     
         ctx.beginPath();
@@ -336,7 +335,6 @@ class Sprite{
 
 
   jumpCount(){
-    console.log("jump count:", this.jumpsLeft)
       if(this.onGround){
          this.jumpsLeft = 3;
       }else if(this.jumpsLeft > 0){
@@ -354,19 +352,22 @@ class Sprite{
     }else if((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown )){ //left arrow or left-space
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
+    }else if(keyMap.up in keysDown){
+        this.vector.direction = 4;
     }else if(keyMap.space in keysDown){ // space 
         this.jump(); 
-        console.log("jumps:", this.jumpsLeft)
     }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
         this.shoot();
         
     } else if(keyMap.w in keysDown){ //  w 
+        //shield
         
     }  else if(keyMap.e in keysDown){ // e 
+        //use items
         
     } else if(keyMap.r in keysDown){ //  r 
-           
-    } 
+        //use weapon
+    }
     
     
     if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
@@ -392,7 +393,8 @@ class Sprite{
   shoot(){
       if(this.projectiles.length < this.jumpsLeft){
           this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
-          this.jumpCount();
+          if(!this.onGround)
+            this.jumpCount();
       }    
   }
 
