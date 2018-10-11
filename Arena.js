@@ -15,6 +15,8 @@
      space: 32,
      right: 39,
      left:  37,
+     down:  40,
+     up:    38,
      q:     81,
      w:     87,
      e:     69,
@@ -304,7 +306,8 @@ class Sprite{
         this.vector = new Vector(this.x, this.y, 0, 2) ;       
         this.area =  Math.PI * this.radius * this.radius / (10000); 
         this.color = 2; 
-        this.jumpsLeft = 1;
+        this.jumpsLeft = 3;
+        this.maxVelocity = this.velocity.y*this.vector.magnitude;
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
@@ -332,7 +335,16 @@ class Sprite{
   }
 
 
-
+  jumpCount(){
+    console.log("jump count:", this.jumpsLeft)
+      if(this.onGround){
+         this.jumpsLeft = 3;
+      }else if(this.jumpsLeft > 0){
+        this.jumpsLeft--;
+      }else{
+          this.jumpsLeft = 1;
+      }
+  }
   
 
   keys(){
@@ -343,8 +355,9 @@ class Sprite{
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
     }else if(keyMap.space in keysDown){ // space 
-        this.jump();    
-    } else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
+        this.jump(); 
+        console.log("jumps:", this.jumpsLeft)
+    }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
         this.shoot();
         
     } else if(keyMap.w in keysDown){ //  w 
@@ -353,7 +366,13 @@ class Sprite{
         
     } else if(keyMap.r in keysDown){ //  r 
            
-    }  
+    } 
+    
+    
+    if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
+        this.doubleJump();   
+    }
+
   }
 
 
@@ -373,19 +392,33 @@ class Sprite{
   shoot(){
       if(this.projectiles.length < this.jumpsLeft){
           this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
+          this.jumpCount();
       }    
   }
 
+  doubleJump(){
+    if(this.jumpsLeft > 1){
+        console.log(this.y)
+        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
+        this.velocity.y += -physics.accelerationY(this)*this.jumpsLeft*this.maxVelocity;
+        console.log(this.velocity.y)
+        this.jumpCount();
+  }
+}
 
   jump(){
-    if(this.onGround){
-        this.velocity.y = -(this.mass*this.velocity.x+constant.gravity*this.mass*this.velocity.x+constant.gravity)*2;
+      let preDirection = this.vector.direction;
+    if(this.onGround  && this.jumpsLeft > 0){
+        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
         this.velocity.y += physics.accelerationY(this);
         this.y -= this.velocity.y;
-        this.vector.direction = 4;
+        this.vector.direction = 4-this.preDirection;
+        this.jumpCount();  
     }else{
-       this.velocity.y = -this.jumpsLeft*physics.accelerationY(this)*this.kx;   
+       this.velocity.y = -physics.accelerationY(this)*this.kx;   
     }
+
+
   }
 
 }// end of Sprite
@@ -521,7 +554,7 @@ reset(){
     this.offsetY = 0;
 }
 
-view(players){
+scaleView(players){
     let centerOfZoom = new Point(0,0),//temporary
     pointsOfInterest = new Array(),
     zoomScale,
@@ -549,7 +582,7 @@ view(players){
             minDistanceSquared = tempDist;
         }
     }
-    zoomScale= (Math.sqrt(minDistanceSquared)+minDistance/4)/minDistance;
+    zoomScale= (Math.sqrt(minDistanceSquared)+minDistance/2)/minDistance;
     this.scale += 0.05 * (Math.abs(this.scale-zoomScale)/(this.scale-zoomScale)); 
 
 
@@ -558,11 +591,10 @@ view(players){
     viewX = centerOfZoom.x - zoomWidthView / 2,
     viewY = centerOfZoom.y - zoomHeightView / 2;
     
-
+    //if view less 
     this.width -= Math.abs(viewX);
     this.height -= Math.abs(viewY);
-
-            
+           
 }
 
 
@@ -678,7 +710,7 @@ class Game{
                 physics.all(this.players[1]);
                 this.camera.zoomIn(.5);
                 this.camera.moveBetween(this.players[0], this.players[1])
-                this.camera.view(this.players);
+               
 
                 break;
 
