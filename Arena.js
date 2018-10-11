@@ -107,7 +107,7 @@ const physics = {  //physics engine
          return (a.x < b.x + b.width &&
             a.x + a.width > b.x &&
             a.y < b.y + b.height &&
-            a.y + a.height > b.y);
+            a.y + a.height > b.y-a.height);
      },
     
     
@@ -172,7 +172,7 @@ const physics = {  //physics engine
             for(i = 0; i < game.platforms.length; i++){
                 if ((this.collisionBetweenRect(obj, game.platforms[i])) ){
                     //obj.velocity.y *= obj.kx; 
-                    obj.y = game.platforms[i].y;
+                    obj.y = game.platforms[i].y-obj.height;
                     //obj.vector.direction = 0;
                     obj.onGround = true;
                     return
