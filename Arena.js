@@ -412,8 +412,8 @@ class Sprite{
   jump(){
       
     if(this.onGround  && this.jumpsLeft > 0){
-        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
-        this.velocity.y += physics.accelerationY(this)*constant.gravity;
+       this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
+        this.velocity.y += physics.accelerationY(this)-constant.gravity*this.mass;
         this.y -= this.velocity.y;
         this.jumpCount();  
     }else{
