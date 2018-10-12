@@ -217,7 +217,7 @@ class Constant{
     constructor(){
         this.drag = 0.47; //0.47
         this.density = 1.22;
-        this.gravity = 9.8;       
+        this.gravity = 7.8;       
     }
 } //end constant
 
@@ -312,6 +312,7 @@ class Sprite{
         this.projectiles = [];
         this.image = document.getElementById(id);
         this.animation = new Animation(this,id,4,this.width*this.height);
+        this.tension = .001;
     }
   
   draw(){ 
@@ -401,23 +402,22 @@ class Sprite{
   doubleJump(){
     if(this.jumpsLeft > 1){
         console.log(this.y)
-        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
-        this.velocity.y += -physics.accelerationY(this)*this.jumpsLeft*this.maxVelocity;
+        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx)*this.tension;
+        this.velocity.y += -physics.accelerationY(this)*this.maxVelocity*this.tension;
         console.log(this.velocity.y)
         this.jumpCount();
   }
 }
 
   jump(){
-      let preDirection = this.vector.direction;
+      
     if(this.onGround  && this.jumpsLeft > 0){
         this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
-        this.velocity.y += physics.accelerationY(this);
+        this.velocity.y += physics.accelerationY(this)*constant.gravity;
         this.y -= this.velocity.y;
-        this.vector.direction = 4-this.preDirection;
         this.jumpCount();  
     }else{
-       this.velocity.y = -physics.accelerationY(this)*this.kx;   
+       this.velocity.y = -physics.accelerationY(this)*this.kx*frameRate;   
     }
 
 
