@@ -112,18 +112,18 @@ const physics = {  //physics engine
     
     
      boundry:function walls(obj){
-        if (obj.y > CENTER_HEIGHT - obj.radius) { 
-            obj.y = CENTER_HEIGHT - obj.radius;
+        if (obj.y > CENTER_HEIGHT - obj.height) { 
+            obj.y = CENTER_HEIGHT - obj.height;
             obj.velocity.y *= obj.kx; 
             obj.x = 0;
             obj.y = -100;
 
             return true;
-        }else if (obj.x > CENTER_WIDTH - obj.radius){
-            obj.x = CENTER_WIDTH - obj.radius;
+        }else if (obj.x > CENTER_WIDTH - obj.height){
+            obj.x = CENTER_WIDTH - obj.height;
             return true;
         }else if (obj.x < -CENTER_WIDTH) {
-            obj.x = -CENTER_WIDTH+obj.radius;
+            obj.x = -CENTER_WIDTH+obj.height;
             return true;
         }else{
             return false;
@@ -216,7 +216,7 @@ const physics = {  //physics engine
 class Constant{   
     constructor(){
         this.drag = 0.47; //0.47
-        this.density = 1.22;
+        this.density = 1.0;
         this.gravity = 7.8;       
     }
 } //end constant
@@ -307,7 +307,7 @@ class Sprite{
         this.area =  Math.PI * this.radius * this.radius / (10000); 
         this.color = 2; 
         this.jumpsLeft = 3;
-        this.maxVelocity = this.velocity.y*this.vector.magnitude;
+        this.maxVelocity = this.velocity.y*this.vector.magnitude*this.velocity.x;
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
@@ -411,13 +411,13 @@ class Sprite{
 
   jump(){
       
-    if(this.onGround  && this.jumpsLeft > 0){
-       this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
-        this.velocity.y += physics.accelerationY(this)-constant.gravity*this.mass;
-        this.y -= this.velocity.y;
-        this.jumpCount();  
+    if(this.onGround && this.jumpsLeft > 0){
+        this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
+        this.velocity.y += -physics.accelerationY(this)*this.maxVelocity;
+        this.y += -this.velocity.y*this.velocity.y
+        this.jumpCount();
     }else{
-       this.velocity.y = -physics.accelerationY(this)*this.kx*frameRate;   
+       //this.velocity.y = -physics.accelerationY(this)*this.kx*frameRate;   
     }
 
 
@@ -551,9 +551,26 @@ draw(){
     ctx.restore(); 
    
 }
+
+
+hitMax(){
+    if(this.x > this.distanceFromCenter() > CENTER_WIDTH || this.y > this.distanceFromCenter() > CENTER_HEIGHT){
+        this.resetZoom();
+        this.x -= this.distanceFromCenter();
+    }   this.y -= this.distanceFromCenter();
+}
+
+
 reset(){
     this.offsetX = 0;
     this.offsetY = 0;
+}
+
+
+distanceFromCenter(){
+    let origin = new Point(0,0),
+    cameraPos = new Point(this.x, this.y);
+    return distanceBetweenPoints(origin.x,origin.y,cameraPos.x,cameraPos.y);
 }
 
 scaleView(players){
@@ -712,6 +729,7 @@ class Game{
                 physics.all(this.players[1]);
                 this.camera.zoomIn(.5);
                 this.camera.moveBetween(this.players[0], this.players[1])
+                this.camera.hitMax();
                
 
                 break;
