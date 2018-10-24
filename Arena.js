@@ -394,9 +394,7 @@ class Sprite{
   shoot(){
       if(this.projectiles.length < this.jumpsLeft){
           this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
-          if(!this.onGround)
-            this.jumpCount();
-      }    
+      }
   }
 
   doubleJump(){
@@ -553,11 +551,28 @@ draw(){
 }
 
 
-hitMax(){
-    if(this.x > this.distanceFromCenter() > CENTER_WIDTH || this.y > this.distanceFromCenter() > CENTER_HEIGHT){
+zoom(a,b){ //do this to start.
+    if (distanceBetween(a, b)> CENTER_WIDTH+a.radius){
+        this.zoomIn();
+    }else if(distanceBetween(a,b) < this.distanceFromCenter()){
+        this.zoomOut();
+    }
+}
+
+
+move(){
+    if(this.distanceFromCenter() > CENTER_WIDTH || this.distanceFromCenter() > CENTER_HEIGHT){
         this.resetZoom();
         this.x -= this.distanceFromCenter();
-    }   this.y -= this.distanceFromCenter();
+        this.y -= this.distanceFromCenter();
+    }else{
+        this.x = this.offsetX;
+        this.y = this.offsetY;
+       
+       // console.log(this.x, this.y)
+    }
+     this.width = this.width*this.scale;
+     this.height = this.height* this.scale;
 }
 
 
@@ -611,14 +626,9 @@ scaleView(players){
     viewY = centerOfZoom.y - zoomHeightView / 2;
     
     //if view less 
-    this.width -= Math.abs(viewX);
-    this.height -= Math.abs(viewY);
+  
            
 }
-
-
-
-
 
 
 zoomIn(amount){
@@ -652,7 +662,7 @@ zoomOut(amount){
     ctx.scale(this.scale, this.scale);
     
     ctx.restore();
-		return this.scale;
+	return this.scale;
 }
 
 moveTo(obj){
@@ -662,9 +672,13 @@ moveTo(obj){
 }
 
 moveBetween(a,b){
-	this.x = distanceBetween(a,b)/2+((a.x-b.x)/2);
-	this.y = distanceBetween(a,b)/2+((a.y-b.y)/2);
+	this.offsetX = distanceBetween(a,b)/2+((a.x-b.x)/2);
+	this.offsetY = distanceBetween(a,b)/2+((a.y-b.y)/2);
+    //console.log(distanceBetween(a,b)/2+((a.x-b.x)/2), distanceBetween(a,b)/2+((a.y-b.y)/2))
 }
+
+
+
 	
  
 resetZoom(){
@@ -727,9 +741,10 @@ class Game{
                 this.render();
                 physics.all(this.players[0]);
                 physics.all(this.players[1]);
-                this.camera.zoomIn(.5);
+                this.camera.zoom(this.players[0], this.players[1]);
                 this.camera.moveBetween(this.players[0], this.players[1])
-                this.camera.hitMax();
+                this.camera.move();
+                
                
 
                 break;
