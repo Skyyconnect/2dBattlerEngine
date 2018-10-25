@@ -393,7 +393,7 @@ class Sprite{
 
   shoot(){
       if(this.projectiles.length < this.jumpsLeft){
-          this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction));
+          this.projectiles.push(new Asset(this.x, this.y-this.radius, 5, 5, "projectile", this.vector.direction, this.velocity.x, this.velocity.y));
       }
   }
 
@@ -424,17 +424,20 @@ class Sprite{
 }// end of Sprite
 
 class Asset{
-    constructor(x,y, width, height, type, direction){
+    constructor(x,y, width, height, type, direction, velocityX, velocityY){
         this.x = x;
         this.y = y;
         this.height = height;
         this.width = width;
         this.type = type;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
         this.id = "";
         this.image = document.getElementById(this.id);
         this.vector = new Vector(1.0,1.0,0,4);
         this.radius = height;
         this.vector.direction = direction;
+        this.velocity = {x:this.vector.magnitude*this.velocityX, y: this.vector.magnitude*this.velocityY};
     }
 
     draw(){
@@ -447,16 +450,16 @@ class Asset{
             this.draw();
             switch(this.vector.direction){
                 case 1:
-                  this.x += this.vector.magnitude
+                  this.x += this.vector.magnitude*this.velocityX*this.vector.magnitude*this.velocityX;
                   break;
                 case 2:
-                  this.y += this.vector.magnitude;
+                  this.y += this.vector.magnitude*this.velocityY*this.vector.magnitude*this.velocityY;
                   break;
                 case 3:
-                  this.x -= this.vector.magnitude;
+                  this.x -= this.vector.magnitude*this.velocityX*this.vector.magnitude*this.velocityX;
                   break;
               case 4:
-                  this.y -= this.vector.magnitude;
+                  this.y -= this.vector.magnitude*this.velocityY*this.vector.magnitude*this.velocityY;
               break;
                   
             }
@@ -714,11 +717,11 @@ class Game{
     }
 
     setup(){
-       this.platforms.push(new Asset(-200,0, 100, 50, "plaform", 4));
-       this.platforms.push(new Asset(100,0,100,50, "plaform", 4));
-       this.platforms.push(new Asset(-50,50,100,50, "plaform", 4));
-       this.players.push(new Sprite(0,-100,1,10,-0.5, "player", 'player'));
-       this.players.push(new Sprite(0,200,1,10,-0.5, "playerB", 'player'));
+       this.platforms.push(new Asset(-500,0, 200, 75, "plaform", 4,0,0));
+       this.platforms.push(new Asset(300,0,200,75, "plaform", 4,0,0));
+       this.platforms.push(new Asset(-CENTER_WIDTH,300,WIDTH,100, "plaform", 4, 0,0));
+       this.players.push(new Sprite(0,-100,1,20,-0.5, "player", 'player'));
+       this.players.push(new Sprite(0,0,1,20,-0.5, "playerB", 'player'));
     }
 
 
@@ -760,7 +763,7 @@ class Game{
 
     switchState(newState){
         this.state = newState;
-        
+        return this.state;
     }
 
 }// end Game
