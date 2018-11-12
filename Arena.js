@@ -172,7 +172,7 @@ const physics = {  //physics engine
             for(i = 0; i < game.platforms.length; i++){
                 if ((this.collisionBetweenRect(obj, game.platforms[i])) ){
                     //obj.velocity.y *= obj.kx; 
-                    obj.y = game.platforms[i].y-obj.height;
+                    obj.y = game.platforms[i].y;
                     //obj.vector.direction = 0;
                     obj.onGround = true;
                     return
@@ -311,8 +311,10 @@ class Sprite{
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
-        this.animation = new Animation(this,id,4,this.width*this.height);
+        this.animation = new Animation(this,id,8,this.width*this.height+64);
         this.tension = .001;
+        this.shouldAnimate = true;
+        this.state = "front";
     }
   
   draw(){ 
@@ -328,8 +330,6 @@ class Sprite{
         ctx.translate(this.x, this.y);  
         ctx.restore(); 
     }
-
-
 
 
   }
@@ -350,13 +350,17 @@ class Sprite{
     if ((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown)){ //right arrow or right-space
     this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 1;
+    this.state = "right";
+
     }else if((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown )){ //left arrow or left-space
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
+    this.state = "left"
     }else if(keyMap.up in keysDown){
         this.vector.direction = 4;
     }else if(keyMap.space in keysDown){ // space 
-        this.jump(); 
+        this.jump();  //come back to
+        this.state = "jumpFront";
     }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
         this.shoot();
         
@@ -368,14 +372,19 @@ class Sprite{
         
     } else if(keyMap.r in keysDown){ //  r 
         //use weapon
-    }
-    
-    
-    if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
+    }else if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
         this.doubleJump();   
+    }else{
+       this.animation.animateIdle();
     }
 
+    this.animation.loadAnimation()
+
+
+
   }
+
+
 
 
  project(){
@@ -389,6 +398,8 @@ class Sprite{
         }
     }
  }
+
+
  
 
   shoot(){
@@ -412,7 +423,7 @@ class Sprite{
     if(this.onGround && this.jumpsLeft > 0){
         this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
         this.velocity.y += -physics.accelerationY(this)*this.maxVelocity;
-        this.y += -this.velocity.y*this.velocity.y
+        this.y += -this.velocity.y*this.velocity.y;
         this.jumpCount();
     }else{
        //this.velocity.y = -physics.accelerationY(this)*this.kx*frameRate;   
@@ -442,7 +453,7 @@ class Asset{
 
     draw(){
         ctx.fillStyle = 'red';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillRect(this.x, this.y+50, this.width, this.height);
     }
 
 
@@ -477,22 +488,43 @@ class Animation{
     constructor(obj, id, numFrames, scale){
         this.image = document.getElementById(id);
         this.obj = obj;
-        this.delay = 3;
+        this.delay = 4;
         this.delayCount = 0;
-        this.frameX = 1;
-        this.frameY = 1;
+        this.frameX = 0;
+        this.frameY = 0;
         this.shouldAnimate = true;
         this.numberOfFrames = numFrames;
-        this.scale = scale;
+        this.scale = scale/this.numberOfFrames;
+        this.animations = {
+            front: [10,8],
+            back: [8,8],
+            left:[9,8],
+            right:[11,8],
+            swingUp: [12,5],
+            swingLeft: [13,5],
+            swingDown: [14,5],
+            swingRight: [15,5],
+            death: [20,5],
+            jumpBack:[0,6],
+            jumpLeft: [1,6],
+            jumpFront: [2,6],
+            jumpRight: [3,6],
 
+            
+
+        }
 
     }
 
 
+
+
+
+
     draw(){
         if(this.shouldAnimate){ 
-           ctx.drawImage(this.image,this.frameX*this.obj.height, this.obj.height*this.frameY, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
-           this.incrementFrame(this.numberOfFrames,this.delay);
+           ctx.drawImage(this.image,this.frameX*64, this.frameY*64, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
+           this.incrementFrame(this.delay);
         }else{
             ctx.save();     
             ctx.beginPath();
@@ -504,7 +536,9 @@ class Animation{
         }
       }
 
-    incrementFrame(numFrames, delayAmount) {
+    
+
+    incrementFrame(delayAmount) {
         if (this.delayCount < delayAmount) {
           this.delayCount += 1;
          
@@ -513,13 +547,95 @@ class Animation{
              this.frameX += 1;
           } else {
             this.frameX = 0;
-            this.delayCount = 0;
-           
           }
-         
+         this.delayCount = 0;
         }
         
       }
+
+    loadAnimation(){
+        switch(this.obj.state){
+            case "right":
+                this.frameY = this.animations.right[0];
+                this.numberOfFrames = this.animations.right[1]; 
+                break;
+            case "left":
+                this.frameY = this.animations.left[0];
+                this.numberOfFrames = this.animations.left[1]; 
+                break;
+            case "front":
+                this.frameY = this.animations.front[0];
+                this.numberOfFrames = this.animations.front[1]; 
+                break;
+            case "back":
+                this.frameY = this.animations.back[0];
+                this.numberOfFrames = this.animations.back[1]; 
+                break;
+            case "swingUp":
+                this.frameY = this.animations.swingUp[0];
+                this.numberOfFrames = this.animations.swingUp[1]; 
+                break;
+            case "swingDown":
+                this.frameY = this.animations.swingDown[0];
+                this.numberOfFrames = this.animations.swingDown[1]; 
+                break;
+            case "swingLeft":
+                this.frameY = this.animations.swingLeft[0];
+                this.numberOfFrames = this.animations.swingLeft[1]; 
+                break;
+            case "swingRight":
+                this.frameY = this.animations.swingRight[0];
+                this.numberOfFrames = this.animations.swingRight[1]; 
+                break;
+            case "death":
+                this.frameY = this.animations.death[0];
+                this.numberOfFrames = this.animations.death[1]; 
+                break;
+            case "jumpRight":
+                this.frameY = this.animations.jumpRight[0];
+                this.numberOfFrames = this.animations.jumpRight[1]; 
+                break;
+            case "jumpLeft":
+                this.frameY = this.animations.jumpLeft[0];
+                this.numberOfFrames = this.animations.jumpLeft[1]; 
+                break;
+            case "jumpFront":
+                this.frameY = this.animations.jumpFront[0];
+                this.numberOfFrames = this.animations.jumpFront[1]; 
+                break;
+            case "jumpBack":
+                this.frameY = this.animations.jumpBack[0];
+                this.numberOfFrames = this.animations.jumpBack[1]; 
+                break;
+
+
+        }
+    }
+
+
+    animateIdle(){
+        if(this.obj.onGround){
+            this.obj.state = "front";
+        }else{
+            switch(this.obj.vector.direction){
+                case 1:
+                    this.obj.state = "jumpRight";
+                    break;
+                case 2: 
+                    this.obj.state = "jumpDown";
+                    break;
+                case 3: 
+                    this.obj.state = "jumpLeft";
+                    break;
+                case 4:
+                    this.obj.state = "jumpBack";
+            }
+        }
+    }
+
+
+     
+      
 
 
 
@@ -726,8 +842,9 @@ class Game{
 
 
     render(){
-        drawAll(this.players);
+       
         drawAll(this.platforms);
+        drawAll(this.players);
         this.camera.draw();
     }
 
@@ -743,7 +860,7 @@ class Game{
             case 1: //game state
                 this.render();
                 physics.all(this.players[0]);
-                physics.all(this.players[1]);
+                //physics.all(this.players[1]);
                 this.camera.zoom(this.players[0], this.players[1]);
                 this.camera.moveBetween(this.players[0], this.players[1])
                 this.camera.move();
