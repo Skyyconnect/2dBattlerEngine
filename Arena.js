@@ -371,14 +371,17 @@ class Sprite{
         //use items
         
     } else if(keyMap.r in keysDown){ //  r 
-        
-    }else if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
-        this.doubleJump();   
+        //do something
     }else{
        this.animation.animateIdle();
     }
 
-    return this.animation.loadAnimation()
+    if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
+        this.doubleJump(); 
+
+    }
+
+    this.animation.loadAnimation();
 
 
 
