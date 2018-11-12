@@ -57,8 +57,7 @@ ctx.translate(CENTER_WIDTH, CENTER_HEIGHT); // translate to 0,0 (origin)
  
 function myUp(){
     canvas.onmousemove = null;
-  }
-                                            // add mouse handler
+  }// add mouse handler
 function myDown(e){
     mouseX = (e.pageX - canvas.offsetLeft);
     mouseY = (e.pageY - canvas.offsetTop);
@@ -311,7 +310,7 @@ class Sprite{
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
-        this.animation = new Animation(this,id,8,this.width*this.height+64);
+        this.animation = new Animation(this,id,8,this.width*this.height+100);
         this.tension = .001;
         this.shouldAnimate = true;
         this.state = "front";
@@ -347,22 +346,23 @@ class Sprite{
   
 
   keys(){
-    if ((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown)){ //right arrow or right-space
+    if (((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown))){ //right arrow or right-space
     this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 1;
-    this.state = "right";
-
-    }else if((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown )){ //left arrow or left-space
+    if(this.onGround)
+        this.state = "right";
+    }else if(((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown ))){ //left arrow or left-space
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
-    this.state = "left"
+    if(this.onGround)
+        this.state = "left"
     }else if(keyMap.up in keysDown){
         this.vector.direction = 4;
     }else if(keyMap.space in keysDown){ // space 
         this.jump();  //come back to
-        this.state = "jumpFront";
-    }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown)){ // q
-        this.shoot();
+    }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown) || (keyMap.q in keysDown && keyMap.up in keysDown)||(keyMap.q in keysDown && keyMap.down in keysDown)|| (keyMap.q in keysDown && keyMap.left in keysDown)|| (keyMap.q in keysDown && keyMap.right in keysDown)){ // q
+        this.animation.animateSwing();
+        
         
     } else if(keyMap.w in keysDown){ //  w 
         //shield
@@ -371,14 +371,14 @@ class Sprite{
         //use items
         
     } else if(keyMap.r in keysDown){ //  r 
-        //use weapon
+        
     }else if(keyMap.space in keysDown && keyMap.up in keysDown){ //space and up
         this.doubleJump();   
     }else{
        this.animation.animateIdle();
     }
 
-    this.animation.loadAnimation()
+    return this.animation.loadAnimation()
 
 
 
@@ -634,6 +634,24 @@ class Animation{
     }
 
 
+    animateSwing(){
+            switch(this.obj.vector.direction){
+                case 1:
+                    this.obj.state = "swingRight";
+                    break;
+                case 2: 
+                    this.obj.state = "swingDown";
+                    break;
+                case 3: 
+                    this.obj.state = "swingLeft";
+                    break;
+                case 4:
+                    this.obj.state = "swingUp";
+            }
+        }
+    
+
+
      
       
 
@@ -837,7 +855,7 @@ class Game{
        this.platforms.push(new Asset(300,0,200,75, "plaform", 4,0,0));
        this.platforms.push(new Asset(-CENTER_WIDTH,300,WIDTH,100, "plaform", 4, 0,0));
        this.players.push(new Sprite(0,-100,1,20,-0.5, "player", 'player'));
-       this.players.push(new Sprite(0,0,1,20,-0.5, "playerB", 'player'));
+       this.players.push(new Sprite(800,0,1,20,-0.5, "playerB", 'player'));
     }
 
 
