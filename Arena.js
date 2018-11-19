@@ -297,8 +297,8 @@ class Sprite{
         this.y = y;  
         this.mass = mass; 
         this.radius = radius;
-        this.height = 64;
-        this.width = 64;
+        this.height = 48;
+        this.width = 48;
         this.type = type;  
         this.kx = kx;
         this.velocity = {x:1, y:0}
@@ -508,7 +508,8 @@ class Animation{
         this.frameY = 0;
         this.shouldAnimate = true;
         this.numberOfFrames = numFrames;
-        this.scale = scale/this.numberOfFrames;
+        
+        this.scale = scale/(this.numberOfFrames+1);
         this.animations = {
             front: [10,8],
             back: [8,8],
@@ -528,6 +529,8 @@ class Animation{
 
         }
 
+
+
     }
 
 
@@ -537,7 +540,7 @@ class Animation{
 
     draw(){
         if(this.shouldAnimate){ 
-           ctx.drawImage(this.image,this.frameX*216, this.frameY*216, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
+           ctx.drawImage(this.image,this.frameX*(this.scale+7), this.frameY*(this.scale+7), this.scale+7, this.scale+83,this.obj.x,this.obj.y, this.scale+7, this.scale+7);
            this.incrementFrame(this.delay);
         }else{
             ctx.save();     
@@ -975,7 +978,7 @@ class Game{
             
             case 1: //game state
                 this.render();
-                physics.all(this.players[0]);
+               // physics.all(this.players[0]);
                 //physics.all(this.players[1]);
                 this.camera.zoom(this.players[0], this.players[1]);
                 this.camera.moveBetween(this.players[0], this.players[1])
