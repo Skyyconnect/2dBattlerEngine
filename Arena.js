@@ -297,8 +297,8 @@ class Sprite{
         this.y = y;  
         this.mass = mass; 
         this.radius = radius;
-        this.height = radius;
-        this.width = radius;
+        this.height = 64;
+        this.width = 64;
         this.type = type;  
         this.kx = kx;
         this.velocity = {x:1, y:0}
@@ -310,7 +310,7 @@ class Sprite{
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
-        this.animation = new Animation(this,id,8,this.width*this.height+100);
+        this.animation = new Animation(this,id,10,this.width*this.height);
         this.tension = .001;
         this.shouldAnimate = true;
         this.state = "front";
@@ -343,21 +343,34 @@ class Sprite{
           this.jumpsLeft = 1;
       }
   }
-  
 
-  keys(){
-    if (((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown))){ //right arrow or right-space
+  rightArrow(){
     this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 1;
     if(this.onGround)
         this.state = "right";
-    }else if(((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown ))){ //left arrow or left-space
+  }
+
+  leftArrow(){
     this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
     if(this.onGround)
         this.state = "left"
+  }
+
+  up(){
+    this.vector.direction = 4;
+
+  }
+  
+
+  keys(){
+    if (((keyMap.right in keysDown) || (keyMap.space in keysDown && keyMap.right in keysDown))){ //right arrow or right-space
+        this.rightArrow();
+    }else if(((keyMap.left in keysDown) || (keyMap.space in keysDown && keyMap.left in keysDown ))){ //left arrow or left-space
+        this.leftArrow();
     }else if(keyMap.up in keysDown){
-        this.vector.direction = 4;
+        this.up();
     }else if(keyMap.space in keysDown){ // space 
         this.jump();  //come back to
     }else if(keyMap.q in keysDown || (keyMap.q in keysDown && keyMap.space in keysDown) || (keyMap.q in keysDown && keyMap.up in keysDown)||(keyMap.q in keysDown && keyMap.down in keysDown)|| (keyMap.q in keysDown && keyMap.left in keysDown)|| (keyMap.q in keysDown && keyMap.right in keysDown)){ // q
@@ -416,7 +429,6 @@ class Sprite{
         console.log(this.y)
         this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx)*this.tension;
         this.velocity.y += -physics.accelerationY(this)*this.maxVelocity*this.tension;
-        console.log(this.velocity.y)
         this.jumpCount();
   }
 }
@@ -438,7 +450,7 @@ class Sprite{
 }// end of Sprite
 
 class Asset{
-    constructor(x,y, width, height, type, direction, velocityX, velocityY){
+    constructor(x,y, width, height, type, direction, velocityX, velocityY, id){
         this.x = x;
         this.y = y;
         this.height = height;
@@ -446,7 +458,7 @@ class Asset{
         this.type = type;
         this.velocityX = velocityX;
         this.velocityY = velocityY;
-        this.id = "";
+        this.id = id;
         this.image = document.getElementById(this.id);
         this.vector = new Vector(1.0,1.0,0,4);
         this.radius = height;
@@ -455,8 +467,7 @@ class Asset{
     }
 
     draw(){
-        ctx.fillStyle = 'red';
-        ctx.fillRect(this.x, this.y+50, this.width, this.height);
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height )
     }
 
 
@@ -526,7 +537,7 @@ class Animation{
 
     draw(){
         if(this.shouldAnimate){ 
-           ctx.drawImage(this.image,this.frameX*64, this.frameY*64, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
+           ctx.drawImage(this.image,this.frameX*216, this.frameY*216, this.scale, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
            this.incrementFrame(this.delay);
         }else{
             ctx.save();     
@@ -663,7 +674,96 @@ class Animation{
 
 } //end of Animation
 
+class Map {
+    constructor(){
+        this.maps = {
+            "jungle": [
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,4,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,0,0,0,0,0,0,2,9,0],
+                [0,0,8,0,0,3,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+               
+               
+              
+                
+              
+        ]
 
+
+        };
+        this.tiles = [];
+        this.names = [];
+        this.scale = 64;
+        this.height = 64;
+        this.width = 64;
+        this.edge = 6;
+    }
+
+
+renderTiles(mapName){
+    let row, col;
+    for(row = 0; row < this.maps[mapName].length; row++){
+        for (col = 0; col < this.maps[mapName][row].length; col++){
+            switch(this.maps[mapName][row][col]){
+                case 1: //stone
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height+this.edge, "stone", 4, 0, 0,"stone"));
+                    break;
+                case 2: //grass_dirt
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "grass dirt", 4, 0, 0,"grass_dirt"));
+                    break;
+                case 3://grass_dirt_left
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_left_grass", 4, 0, 0,"top_left_grass"));
+                    break;
+                case 4: //grass_dirt_right
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_right_grass", 4, 0, 0,"top_right_grass"));
+                    break;
+                case 5: //platform_grass_dirt
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt", 4, 0, 0,"platform_grass_dirt"));
+                    break;
+                case 6: //platform_grass_dirt_left
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_left", 4, 0, 0,"platform_grass_dirt_left"));
+                    break;
+                case 7: //platform_grass_dirt_right
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_right", 4, 0, 0,"platform_grass_dirt_right"));
+                    break;
+                case 8: //blue stone
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height, "blue_stone", 4, 0, 0,"blue_stone"));
+                    break;
+                case 9: //dirt
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "dirt", 4, 0, 0,"dirt"));
+                    break;
+                default:
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "sky", 4, 0, 0, "sky"))
+            }
+        }
+    }
+}
+
+draw(){
+    let i;
+    for(i = 0; i < this.tiles.length;i++){
+        this.tiles[i].draw();
+    }
+}
+
+}
 
 
 class Camera{
@@ -841,32 +941,27 @@ class Point{
 class Game{
     constructor(state){
         this.state = state;
-        this.platforms = [];
         this.players = [];
         this.items = [];
         this.sprites = [];
         this.updateKeys = true;
         this.frameCount = 0;
         this.camera = new Camera(0,0,100,100,0,0);
-       
-        
-
+        this.map = new Map();
     }
 
     setup(){
-       this.platforms.push(new Asset(-500,0, 200, 75, "plaform", 4,0,0));
-       this.platforms.push(new Asset(300,0,200,75, "plaform", 4,0,0));
-       this.platforms.push(new Asset(-CENTER_WIDTH,300,WIDTH,100, "plaform", 4, 0,0));
-       this.players.push(new Sprite(0,-100,1,20,-0.5, "player", 'player'));
+       this.map.renderTiles("jungle");
+       this.players.push(new Sprite(0,0,1,54,0.5, "player", 'player'));
        this.players.push(new Sprite(800,0,1,20,-0.5, "playerB", 'player'));
     }
 
 
     render(){
        
-        drawAll(this.platforms);
-        drawAll(this.players);
-        this.camera.draw();
+        this.map.draw();
+        drawAll(this.players)       
+        //this.camera.draw();
     }
 
     stateMachine(){
