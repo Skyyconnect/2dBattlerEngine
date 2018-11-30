@@ -297,8 +297,8 @@ class Sprite{
         this.y = y;  
         this.mass = mass; 
         this.radius = radius;
-        this.height = 48;
-        this.width = 48;
+        this.height = radius;
+        this.width = radius;
         this.type = type;  
         this.kx = kx;
         this.velocity = {x:1, y:0}
@@ -394,7 +394,7 @@ class Sprite{
 
     }
 
-    this.animation.loadAnimation();
+   // this.animation.loadAnimation();
 
 
 
@@ -508,8 +508,9 @@ class Animation{
         this.frameY = 0;
         this.shouldAnimate = true;
         this.numberOfFrames = numFrames;
+        this.size = 1;
         
-        this.scale = scale/(this.numberOfFrames+1);
+        this.scale = scale/(this.numberOfFrames);
         this.animations = {
             front: [10,8],
             back: [8,8],
@@ -540,7 +541,17 @@ class Animation{
 
     draw(){
         if(this.shouldAnimate){ 
-           ctx.drawImage(this.image,this.frameX*(this.scale+7), this.frameY*(this.scale+7), this.scale+7, this.scale+83,this.obj.x,this.obj.y, this.scale+7, this.scale+7);
+        if(keyMap.e in keysDown){ //  w 
+            //shield
+            this.size +=1;
+            console.log(this.size)
+            
+        } else if(keyMap.w in keysDown){ 
+            this.size -=1;
+            console.log(this.size);
+        }
+                
+           ctx.drawImage(this.image,this.frameX*(104), this.frameY*(104), this.scale-28, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
            this.incrementFrame(this.delay);
         }else{
             ctx.save();     
@@ -568,7 +579,7 @@ class Animation{
          this.delayCount = 0;
         }
         
-      }
+      } 
 
     loadAnimation(){
         switch(this.obj.state){
@@ -955,7 +966,7 @@ class Game{
 
     setup(){
        this.map.renderTiles("jungle");
-       this.players.push(new Sprite(0,0,1,54,0.5, "player", 'player'));
+       this.players.push(new Sprite(0,0,1,38,1, "player", 'player'));
        this.players.push(new Sprite(800,0,1,20,-0.5, "playerB", 'player'));
     }
 
@@ -978,13 +989,13 @@ class Game{
             
             case 1: //game state
                 this.render();
-               // physics.all(this.players[0]);
+                //physics.all(this.players[0]);
                 //physics.all(this.players[1]);
                 this.camera.zoom(this.players[0], this.players[1]);
                 this.camera.moveBetween(this.players[0], this.players[1])
                 this.camera.move();
                 
-               
+               //NEED TO STILL REDIFINE TILE COLLISION NOT PLATFORM COLLISION
 
                 break;
 
