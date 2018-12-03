@@ -108,6 +108,13 @@ const physics = {  //physics engine
             a.y < b.y + b.height &&
             a.y + a.height > b.y-a.height);
      },
+
+    collisionBetweenPlatform: function collideRect(a,b){
+        return (a.x < b.x + b.width &&
+           a.x + a.width > b.x &&
+           a.y < b.y + b.height/16 &&
+           a.y + a.height > b.y-a.height);
+    },
     
     
      boundry:function walls(obj){
@@ -166,14 +173,15 @@ const physics = {  //physics engine
     
     
     
-    all:function allPhysics(obj) {
+    all:function allPhysics(obj, platforms) {
             let i;
-            for(i = 0; i < game.platforms.length; i++){
-                if ((this.collisionBetweenRect(obj, game.platforms[i])) ){
-                    //obj.velocity.y *= obj.kx; 
-                    obj.y = game.platforms[i].y;
+            for(i = 0; i < platforms.length; i++){
+                if ((this.collisionBetweenPlatform(obj, platforms[i]) && platforms[i].tile_num > 0) ){
+                    obj.velocity.y  = obj.kx; 
+                    obj.y = platforms[i].y-obj.width;
                     //obj.vector.direction = 0;
                     obj.onGround = true;
+                
                     return
                                         
                 }else{
@@ -301,17 +309,17 @@ class Sprite{
         this.width = radius;
         this.type = type;  
         this.kx = kx;
-        this.velocity = {x:1, y:0}
+        this.velocity = {x:2, y:0}
         this.vector = new Vector(this.x, this.y, 0, 2) ;       
         this.area =  Math.PI * this.radius * this.radius / (10000); 
         this.color = 2; 
         this.jumpsLeft = 3;
-        this.maxVelocity = this.velocity.y*this.vector.magnitude*this.velocity.x;
+        this.maxVelocity = this.velocity.y*this.vector.magnitude;
         this.onGround = false; 
         this.projectiles = [];
         this.image = document.getElementById(id);
         this.animation = new Animation(this,id,10,this.width*this.height);
-        this.tension = .001;
+        this.tension = .5 ;
         this.shouldAnimate = true;
         this.state = "front";
     }
@@ -345,14 +353,14 @@ class Sprite{
   }
 
   rightArrow(){
-    this.x += this.velocity.x*physics.accelerationX(this)*frameRate*200;
+    this.x += 4 //this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 1;
     if(this.onGround)
         this.state = "right";
   }
 
   leftArrow(){
-    this.x -= this.velocity.x*physics.accelerationX(this)*frameRate*200;
+    this.x -= 4 //this.velocity.x*physics.accelerationX(this)*frameRate*200;
     this.vector.direction = 3;
     if(this.onGround)
         this.state = "left"
@@ -394,7 +402,7 @@ class Sprite{
 
     }
 
-   // this.animation.loadAnimation();
+   this.animation.loadAnimation();
 
 
 
@@ -436,9 +444,10 @@ class Sprite{
   jump(){
       
     if(this.onGround && this.jumpsLeft > 0){
+       
         this.velocity.y = -(this.mass*constant.gravity)-(physics.accelerationY(this)*this.kx);
         this.velocity.y += -physics.accelerationY(this)*this.maxVelocity;
-        this.y += -this.velocity.y*this.velocity.y;
+        this.y += -(this.velocity.y*this.velocity.y)/2;
         this.jumpCount();
     }else{
        //this.velocity.y = -physics.accelerationY(this)*this.kx*frameRate;   
@@ -450,12 +459,13 @@ class Sprite{
 }// end of Sprite
 
 class Asset{
-    constructor(x,y, width, height, type, direction, velocityX, velocityY, id){
+    constructor(x,y, width, height, type, direction, velocityX, velocityY, id, tile_num){
         this.x = x;
         this.y = y;
         this.height = height;
         this.width = width;
         this.type = type;
+        this.tile_num = tile_num;
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.id = id;
@@ -502,29 +512,31 @@ class Animation{
     constructor(obj, id, numFrames, scale){
         this.image = document.getElementById(id);
         this.obj = obj;
-        this.delay = 4;
+        this.delay = 6  ;
         this.delayCount = 0;
         this.frameX = 0;
         this.frameY = 0;
         this.shouldAnimate = true;
         this.numberOfFrames = numFrames;
         this.size = 1;
+        this.animation_Center_X = obj.x;
+        this.animation_Center_Y = obj.y;
         
         this.scale = scale/(this.numberOfFrames);
         this.animations = {
-            front: [10,8],
-            back: [8,8],
-            left:[9,8],
-            right:[11,8],
-            swingUp: [12,5],
-            swingLeft: [13,5],
-            swingDown: [14,5],
-            swingRight: [15,5],
-            death: [20,5],
-            jumpBack:[0,6],
-            jumpLeft: [1,6],
-            jumpFront: [2,6],
-            jumpRight: [3,6],
+            front: [0,10],
+            back: [3,10],
+            left:[2,8],
+            right:[1,8],
+            swingUp: [0,0],
+            swingLeft: [0,0],
+            swingDown: [0,0],
+            swingRight: [0,0],
+            death: [0,0],
+            jumpBack:[0,0],
+            jumpLeft: [5,5],
+            jumpFront: [0,0],
+            jumpRight: [4,5],
 
             
 
@@ -551,7 +563,7 @@ class Animation{
             console.log(this.size);
         }
                 
-           ctx.drawImage(this.image,this.frameX*(104), this.frameY*(104), this.scale-28, this.scale,this.obj.x,this.obj.y, this.scale, this.scale);
+           ctx.drawImage(this.image,this.frameX*(104), this.frameY*(147), this.scale-28, this.scale,this.obj.x,this.obj.y-100, this.scale, this.scale);
            this.incrementFrame(this.delay);
         }else{
             ctx.save();     
@@ -643,7 +655,11 @@ class Animation{
 
     animateIdle(){
         if(this.obj.onGround){
-            this.obj.state = "front";
+            if (this.obj.vector.direction == 1){
+                    this.obj.state = "front";
+            }else{
+            this.obj.state = "back"
+            }
         }else{
             switch(this.obj.vector.direction){
                 case 1:
@@ -694,7 +710,7 @@ class Map {
             "jungle": [
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
-                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],  
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
@@ -712,12 +728,7 @@ class Map {
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
                 [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
-                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],
-               
-               
-              
-                
-              
+                [0,0,0,0,0,2,0,0,0,0,0,2,9,0],     
         ]
 
 
@@ -737,34 +748,34 @@ renderTiles(mapName){
         for (col = 0; col < this.maps[mapName][row].length; col++){
             switch(this.maps[mapName][row][col]){
                 case 1: //stone
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height+this.edge, "stone", 4, 0, 0,"stone"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height+this.edge, "stone", 4, 0, 0,"stone", 1));
                     break;
                 case 2: //grass_dirt
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "grass dirt", 4, 0, 0,"grass_dirt"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "grass_dirt", 4, 0, 0,"grass_dirt",2));
                     break;
                 case 3://grass_dirt_left
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_left_grass", 4, 0, 0,"top_left_grass"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_left_grass", 4, 0, 0,"top_left_grass",3));
                     break;
                 case 4: //grass_dirt_right
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_right_grass", 4, 0, 0,"top_right_grass"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "top_right_grass", 4, 0, 0,"top_right_grass",4));
                     break;
                 case 5: //platform_grass_dirt
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt", 4, 0, 0,"platform_grass_dirt"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt", 4, 0, 0,"platform_grass_dirt",5));
                     break;
                 case 6: //platform_grass_dirt_left
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_left", 4, 0, 0,"platform_grass_dirt_left"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_left", 4, 0, 0,"platform_grass_dirt_left",6));
                     break;
                 case 7: //platform_grass_dirt_right
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_right", 4, 0, 0,"platform_grass_dirt_right"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "platform_grass_dirt_right", 4, 0, 0,"platform_grass_dirt_right",7));
                     break;
                 case 8: //blue stone
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height, "blue_stone", 4, 0, 0,"blue_stone"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width+this.edge, this.height, "blue_stone", 4, 0, 0,"blue_stone",8));
                     break;
                 case 9: //dirt
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "dirt", 4, 0, 0,"dirt"));
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "dirt", 4, 0, 0,"dirt",9));
                     break;
                 default:
-                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "sky", 4, 0, 0, "sky"))
+                    this.tiles.push(new Asset(row*this.scale-CENTER_WIDTH,col*this.scale-CENTER_HEIGHT, this.width, this.height, "sky", 4, 0, 0, "sky",0))
             }
         }
     }
@@ -989,13 +1000,13 @@ class Game{
             
             case 1: //game state
                 this.render();
-                //physics.all(this.players[0]);
+                physics.all(this.players[0], this.map.tiles);
                 //physics.all(this.players[1]);
                 this.camera.zoom(this.players[0], this.players[1]);
                 this.camera.moveBetween(this.players[0], this.players[1])
                 this.camera.move();
                 
-               //NEED TO STILL REDIFINE TILE COLLISION NOT PLATFORM COLLISION
+               //NEED TO STILL REDIFINE TILE COLLISION NOT PLATFORM COLLISION   
 
                 break;
 
