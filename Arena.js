@@ -796,7 +796,7 @@ class Camera{
 		this.x = x;
 		this.y = y;
 		this.width = width;
-		this.hight = height;
+		this.height = height;
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.totalZoom =  1; 
